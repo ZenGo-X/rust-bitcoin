@@ -373,8 +373,9 @@ impl Display for Address {
                 let mut prefixed = [0; 21];
                 prefixed[0] = match self.network {
                     Network::Bitcoin => 0,
-                    Network::Dogecoin => 30,
                     Network::Testnet | Network::Regtest => 111,
+                    Network::Dogecoin => 30,
+                    Network::Dogetest => 113,
                 };
                 prefixed[1..].copy_from_slice(&hash[..]);
                 base58::check_encode_slice_to_fmt(fmt, &prefixed[..])
@@ -383,8 +384,9 @@ impl Display for Address {
                 let mut prefixed = [0; 21];
                 prefixed[0] = match self.network {
                     Network::Bitcoin => 5,
-                    Network::Dogecoin => 22,
                     Network::Testnet | Network::Regtest => 196,
+                    Network::Dogecoin => 22,
+                    Network::Dogetest => 196,
                 };
                 prefixed[1..].copy_from_slice(&hash[..]);
                 base58::check_encode_slice_to_fmt(fmt, &prefixed[..])
@@ -397,7 +399,8 @@ impl Display for Address {
                     Network::Bitcoin => "bc",
                     Network::Testnet => "tb",
                     Network::Regtest => "bcrt",
-                    Network::Dogecoin => "dc", // Not really supported
+                    Network::Dogecoin => "dc",  // Not really supported
+                    Network::Dogetest => "dct", // Not really supported
                 };
                 let mut bech32_writer = bech32::Bech32Writer::new(hrp, fmt)?;
                 bech32::WriteBase32::write_u5(&mut bech32_writer, ver)?;

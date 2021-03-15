@@ -610,8 +610,9 @@ impl fmt::Display for ExtendedPrivKey {
         ret[0..4].copy_from_slice(
             &match self.network {
                 Network::Bitcoin => [0x04, 0x88, 0xAD, 0xE4],
-                Network::Dogecoin => [0x02, 0xFA, 0xC3, 0x98],
                 Network::Testnet | Network::Regtest => [0x04, 0x35, 0x83, 0x94],
+                Network::Dogecoin => [0x02, 0xFA, 0xC3, 0x98],
+                Network::Dogetest => [0x04, 0x32, 0xA2, 0x43],
             }[..],
         );
         ret[4] = self.depth as u8;
@@ -667,8 +668,9 @@ impl fmt::Display for ExtendedPubKey {
         ret[0..4].copy_from_slice(
             &match self.network {
                 Network::Bitcoin => [0x04u8, 0x88, 0xB2, 0x1E],
-                Network::Dogecoin => [0x02u8, 0xFA, 0xCA, 0xFD],
                 Network::Testnet | Network::Regtest => [0x04u8, 0x35, 0x87, 0xCF],
+                Network::Dogecoin => [0x02u8, 0xFA, 0xCA, 0xFD],
+                Network::Dogetest => [0x04u8, 0x32, 0xA9, 0xA8],
             }[..],
         );
         ret[4] = self.depth as u8;

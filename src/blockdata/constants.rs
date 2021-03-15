@@ -138,9 +138,20 @@ pub fn genesis_block(network: Network) -> Block {
                 version: 1,
                 prev_blockhash: Default::default(),
                 merkle_root,
-                time: 1231006505,  // Need to check this
-                bits: 0x1d00ffff,  // Need to check this
-                nonce: 2083236893, // Need to check this
+                time: 1386325540,
+                bits: 0x1e0ffff0, // Need to check this
+                nonce: 99943,     // Need to check this
+            },
+            txdata: txdata,
+        },
+        Network::Dogetest => Block {
+            header: BlockHeader {
+                version: 1,
+                prev_blockhash: Default::default(),
+                merkle_root,
+                time: 1296688602,
+                bits: 0x207fffff, // Need to check this
+                nonce: 2,         // Need to check this
             },
             txdata: txdata,
         },

@@ -55,7 +55,9 @@ user_enum! {
         /// Bitcoin's regtest
         Regtest <-> "regtest",
         /// Dogecoin network
-        Dogecoin <-> "dogecoin"
+        Dogecoin <-> "dogecoin",
+        /// Dogecoin testnet
+        Dogetest <-> "dogetest"
     }
 }
 
@@ -77,6 +79,7 @@ impl Network {
             0x0709110B => Some(Network::Testnet),
             0xDAB5BFFA => Some(Network::Regtest),
             0xC0C0C0C0 => Some(Network::Dogecoin),
+            0xFCC1B7DC => Some(Network::Dogetest),
             _ => None,
         }
     }
@@ -99,6 +102,7 @@ impl Network {
             Network::Testnet => 0x0709110B,
             Network::Regtest => 0xDAB5BFFA,
             Network::Dogecoin => 0xC0C0C0C0,
+            Network::Dogetest => 0xFCC1B7DC,
         }
     }
 }
