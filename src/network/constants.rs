@@ -39,7 +39,7 @@
 
 use std::{fmt, io, ops};
 
-use consensus::encode::{self, Encodable, Decodable};
+use consensus::encode::{self, Decodable, Encodable};
 
 /// Version of the protocol as appearing in network message headers
 pub const PROTOCOL_VERSION: u32 = 70001;
@@ -53,7 +53,11 @@ user_enum! {
         /// Bitcoin's testnet
         Testnet <-> "testnet",
         /// Bitcoin's regtest
-        Regtest <-> "regtest"
+        Regtest <-> "regtest",
+        /// Dogecoin network
+        Dogecoin <-> "dogecoin",
+        /// Dogecoin testnet
+        Dogetest <-> "dogetest"
     }
 }
 
@@ -74,7 +78,9 @@ impl Network {
             0xD9B4BEF9 => Some(Network::Bitcoin),
             0x0709110B => Some(Network::Testnet),
             0xDAB5BFFA => Some(Network::Regtest),
-            _ => None
+            0xC0C0C0C0 => Some(Network::Dogecoin),
+            0xFCC1B7DC => Some(Network::Dogetest),
+            _ => None,
         }
     }
 
@@ -95,6 +101,8 @@ impl Network {
             Network::Bitcoin => 0xD9B4BEF9,
             Network::Testnet => 0x0709110B,
             Network::Regtest => 0xDAB5BFFA,
+            Network::Dogecoin => 0xC0C0C0C0,
+            Network::Dogetest => 0xFCC1B7DC,
         }
     }
 }
@@ -125,7 +133,6 @@ impl ServiceFlags {
     /// WITNESS indicates that a node can be asked for blocks and transactions including witness
     /// data.
     pub const WITNESS: ServiceFlags = ServiceFlags(1 << 3);
-    
     /// COMPACT_FILTERS means the node will service basic block filter requests.
     /// See BIP157 and BIP158 for details on how this is implemented.
     pub const COMPACT_FILTERS: ServiceFlags = ServiceFlags(1 << 6);
@@ -194,7 +201,7 @@ impl fmt::Display for ServiceFlags {
                     write!(f, stringify!($f))?;
                     flags.remove(ServiceFlags::$f);
                 }
-            }
+            };
         }
         write!(f, "ServiceFlags(")?;
         write_flag!(NETWORK);
@@ -256,10 +263,7 @@ impl ops::BitXorAssign for ServiceFlags {
 
 impl Encodable for ServiceFlags {
     #[inline]
-    fn consensus_encode<S: io::Write>(
-        &self,
-        mut s: S,
-    ) -> Result<usize, encode::Error> {
+    fn consensus_encode<S: io::Write>(&self, mut s: S) -> Result<usize, encode::Error> {
         self.0.consensus_encode(&mut s)
     }
 }
@@ -310,10 +314,12 @@ mod tests {
         assert_eq!(Network::Bitcoin.to_string(), "bitcoin");
         assert_eq!(Network::Testnet.to_string(), "testnet");
         assert_eq!(Network::Regtest.to_string(), "regtest");
+        assert_eq!(Network::Dogecoin.to_string(), "dogecoin");
 
         assert_eq!("bitcoin".parse::<Network>().unwrap(), Network::Bitcoin);
         assert_eq!("testnet".parse::<Network>().unwrap(), Network::Testnet);
         assert_eq!("regtest".parse::<Network>().unwrap(), Network::Regtest);
+        assert_eq!("dogecoin".parse::<Network>().unwrap(), Network::Dogecoin);
         assert!("fakenet".parse::<Network>().is_err());
     }
 
@@ -338,12 +344,14 @@ mod tests {
 
         let mut flags2 = flags | ServiceFlags::GETUTXO;
         for f in all.iter() {
-            assert_eq!(flags2.has(*f), *f == ServiceFlags::WITNESS || *f == ServiceFlags::GETUTXO);
+            assert_eq!(
+                flags2.has(*f),
+                *f == ServiceFlags::WITNESS || *f == ServiceFlags::GETUTXO
+            );
         }
 
         flags2 ^= ServiceFlags::WITNESS;
         assert_eq!(flags2, ServiceFlags::GETUTXO);
-        
         flags2 |= ServiceFlags::COMPACT_FILTERS;
         flags2 ^= ServiceFlags::GETUTXO;
         assert_eq!(flags2, ServiceFlags::COMPACT_FILTERS);
@@ -354,7 +362,9 @@ mod tests {
         let flag = ServiceFlags::WITNESS | ServiceFlags::BLOOM | ServiceFlags::NETWORK;
         assert_eq!("ServiceFlags(NETWORK|BLOOM|WITNESS)", flag.to_string());
         let flag = ServiceFlags::WITNESS | 0xf0.into();
-        assert_eq!("ServiceFlags(WITNESS|COMPACT_FILTERS|0xb0)", flag.to_string());
+        assert_eq!(
+            "ServiceFlags(WITNESS|COMPACT_FILTERS|0xb0)",
+            flag.to_string()
+        );
     }
 }
-

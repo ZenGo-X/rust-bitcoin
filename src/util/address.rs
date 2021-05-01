@@ -46,9 +46,9 @@ use std::str::FromStr;
 use bech32;
 use hashes::Hash;
 
-use hash_types::{PubkeyHash, WPubkeyHash, ScriptHash, WScriptHash};
 use blockdata::opcodes;
 use blockdata::script;
+use hash_types::{PubkeyHash, ScriptHash, WPubkeyHash, WScriptHash};
 use network::constants::Network;
 use util::base58;
 use util::key;
@@ -221,7 +221,9 @@ impl Payload {
                 if verop > 0 {
                     verop = 0x50 + verop;
                 }
-                script::Builder::new().push_opcode(verop.into()).push_slice(&prog)
+                script::Builder::new()
+                    .push_opcode(verop.into())
+                    .push_slice(&prog)
             }
         }
         .into_script()
@@ -372,6 +374,8 @@ impl Display for Address {
                 prefixed[0] = match self.network {
                     Network::Bitcoin => 0,
                     Network::Testnet | Network::Regtest => 111,
+                    Network::Dogecoin => 30,
+                    Network::Dogetest => 113,
                 };
                 prefixed[1..].copy_from_slice(&hash[..]);
                 base58::check_encode_slice_to_fmt(fmt, &prefixed[..])
@@ -381,6 +385,8 @@ impl Display for Address {
                 prefixed[0] = match self.network {
                     Network::Bitcoin => 5,
                     Network::Testnet | Network::Regtest => 196,
+                    Network::Dogecoin => 22,
+                    Network::Dogetest => 196,
                 };
                 prefixed[1..].copy_from_slice(&hash[..]);
                 base58::check_encode_slice_to_fmt(fmt, &prefixed[..])
@@ -393,6 +399,8 @@ impl Display for Address {
                     Network::Bitcoin => "bc",
                     Network::Testnet => "tb",
                     Network::Regtest => "bcrt",
+                    Network::Dogecoin => "dc",  // Not really supported
+                    Network::Dogetest => "dct", // Not really supported
                 };
                 let mut bech32_writer = bech32::Bech32Writer::new(hrp, fmt)?;
                 bech32::WriteBase32::write_u5(&mut bech32_writer, ver)?;
@@ -461,7 +469,9 @@ impl FromStr for Address {
 
         // Base58
         if s.len() > 50 {
-            return Err(Error::Base58(base58::Error::InvalidLength(s.len() * 11 / 15)));
+            return Err(Error::Base58(base58::Error::InvalidLength(
+                s.len() * 11 / 15,
+            )));
         }
         let data = base58::from_check(s)?;
         if data.len() != 21 {
@@ -541,7 +551,9 @@ mod tests {
     fn test_p2pkh_address_58() {
         let addr = Address {
             network: Bitcoin,
-            payload: Payload::PubkeyHash(hex_pubkeyhash!("162c5ea71c0b23f5b9022ef047c4a86470a5b070")),
+            payload: Payload::PubkeyHash(hex_pubkeyhash!(
+                "162c5ea71c0b23f5b9022ef047c4a86470a5b070"
+            )),
         };
 
         assert_eq!(
@@ -570,7 +582,9 @@ mod tests {
     fn test_p2sh_address_58() {
         let addr = Address {
             network: Bitcoin,
-            payload: Payload::ScriptHash(hex_scripthash!("162c5ea71c0b23f5b9022ef047c4a86470a5b070")),
+            payload: Payload::ScriptHash(hex_scripthash!(
+                "162c5ea71c0b23f5b9022ef047c4a86470a5b070"
+            )),
         };
 
         assert_eq!(
@@ -597,7 +611,10 @@ mod tests {
         // stolen from Bitcoin transaction: b3c8c2b6cfc335abbcb2c7823a8453f55d64b2b5125a9a61e8737230cdb8ce20
         let key = hex_key!("033bc8c83c52df5712229a2f72206d90192366c36428cb0c12b6af98324d97bfbc");
         let addr = Address::p2wpkh(&key, Bitcoin);
-        assert_eq!(&addr.to_string(), "bc1qvzvkjn4q3nszqxrv3nraga2r822xjty3ykvkuw");
+        assert_eq!(
+            &addr.to_string(),
+            "bc1qvzvkjn4q3nszqxrv3nraga2r822xjty3ykvkuw"
+        );
         assert_eq!(addr.address_type(), Some(AddressType::P2wpkh));
         roundtrips(&addr);
     }
